@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCI · AI Workshop Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────────────────────── */
+:root {
+  --blue:       #003DA5;
+  --blue-mid:   #1A56C4;
+  --blue-light: #EBF0FA;
+  --blue-tint:  #F0F5FF;
+  --orange:     #F4821F;
+  --orange-lt:  #FEF0E6;
+  --yellow:     #FFD500;
+  --yellow-lt:  #FFFBE6;
+  --white:      #FFFFFF;
+  --bg:         #F7F8FA;
+  --card:       #FFFFFF;
+  --border:     #E5E7EB;
+  --border2:    #D1D5DB;
+  --text:       #111827;
+  --text2:      #374151;
+  --muted:      #6B7280;
+  --dim:        #9CA3AF;
+  --green:      #059669;
+  --green-lt:   #ECFDF5;
+  --red:        #DC2626;
+  --sb-w:       220px;
+  --r:          10px;
+  --mono:       'JetBrains Mono', monospace;
+  --sans:       'Plus Jakarta Sans', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{font-family:var(--sans);font-size:15px;color:var(--text);background:var(--bg);height:100%;line-height:1.6}
+button,input,textarea{font-family:var(--sans)}
+a{color:var(--blue-mid);text-decoration:none}
+
+/* ── LAYOUT ──────────────────────────────────────────────────────── */
+.layout{display:flex;height:100vh;overflow:hidden}
+
+/* ── SIDEBAR ─────────────────────────────────────────────────────── */
+.sidebar{
+  width:var(--sb-w);min-width:var(--sb-w);height:100vh;
+  background:var(--blue);color:#fff;
+  display:flex;flex-direction:column;overflow:hidden;
+  position:relative;z-index:10;
+}
+.sb-brand{
+  padding:20px 18px 14px;
+  border-bottom:1px solid rgba(255,255,255,.12);
+}
+.sb-logo{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:6px;
+  background:var(--yellow);color:var(--blue);
+  font-size:11px;font-weight:800;letter-spacing:.06em;margin-bottom:8px;
+}
+.sb-title{font-size:14px;font-weight:700;color:#fff;line-height:1.25}
+.sb-subtitle{font-size:11px;color:rgba(255,255,255,.55);margin-top:1px}
+
+.sb-section-label{
+  font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.4);padding:16px 18px 6px;
+}
+.sb-nav{list-style:none;padding:0 8px;flex:1;overflow-y:auto}
+.sb-nav li{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 10px;border-radius:7px;cursor:pointer;
+  font-size:13px;font-weight:500;color:rgba(255,255,255,.75);
+  transition:all .15s;margin-bottom:2px;
+  border:1px solid transparent;
+}
+.sb-nav li:hover{background:rgba(255,255,255,.1);color:#fff}
+.sb-nav li.active{
+  background:rgba(255,255,255,.15);color:#fff;font-weight:600;
+  border-color:rgba(255,255,255,.12);
+}
+.sb-nav li .ni-icon{font-size:15px;flex-shrink:0;width:20px;text-align:center}
+.sb-nav li .ni-badge{
+  margin-left:auto;font-size:10px;font-weight:600;
+  background:var(--orange);color:#fff;
+  padding:1px 6px;border-radius:10px;
+}
+
+.sb-timer-area{
+  border-top:1px solid rgba(255,255,255,.12);
+  padding:14px 16px;
+}
+.timer-label{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.timer-row{display:flex;align-items:center;gap:8px}
+.timer-display{
+  font-family:var(--mono);font-size:26px;font-weight:500;
+  color:var(--yellow);letter-spacing:.04em;flex:1;
+  cursor:pointer;transition:opacity .15s;
+}
+.timer-display:hover{opacity:.7}
+.timer-display.urgent{color:#ff6b6b;animation:tpulse .8s ease infinite}
+@keyframes tpulse{0%,100%{opacity:1}50%{opacity:.5}}
+.timer-btn{
+  font-size:11px;font-weight:600;padding:5px 10px;border-radius:5px;border:none;cursor:pointer;
+  background:rgba(255,255,255,.15);color:#fff;transition:background .15s;
+}
+.timer-btn:hover{background:rgba(255,255,255,.25)}
+.timer-btn.running{background:rgba(220,38,38,.4)}
+.timer-presets{display:flex;gap:4px;margin-top:7px}
+.timer-preset{
+  font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;border:none;cursor:pointer;
+  background:rgba(255,255,255,.1);color:rgba(255,255,255,.65);transition:all .15s;
+}
+.timer-preset:hover{background:rgba(255,255,255,.2);color:#fff}
+
+/* ── MAIN CONTENT ─────────────────────────────────────────────────── */
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.page{display:none;min-height:100%}
+.page.active{display:block}
+
+.page-header{
+  background:var(--white);border-bottom:1px solid var(--border);
+  padding:28px 36px 22px;
+}
+.page-eyebrow{
+  font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--blue-mid);margin-bottom:6px;display:flex;align-items:center;gap:6px;
+}
+.page-eyebrow .step-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--blue-mid);
+}
+.page-title{font-size:28px;font-weight:800;color:var(--text);line-height:1.15;margin-bottom:4px}
+.page-sub{font-size:14px;color:var(--muted);max-width:520px}
+.page-body{padding:28px 36px;max-width:760px}
+
+/* ── CARDS ────────────────────────────────────────────────────────── */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card+.card{margin-top:12px}
+.card-pad{padding:18px 20px}
+
+/* color-top-border cards */
+.card.blue-top{border-top:3px solid var(--blue)}
+.card.orange-top{border-top:3px solid var(--orange)}
+.card.yellow-top{border-top:3px solid var(--yellow)}
+.card.green-top{border-top:3px solid var(--green)}
+
+/* ── SECTION HEADINGS ─────────────────────────────────────────────── */
+.section-head{margin:28px 0 12px;display:flex;align-items:center;gap:10px}
+.section-head h2{font-size:16px;font-weight:700;color:var(--text)}
+.section-head .sh-line{flex:1;height:1px;background:var(--border)}
+
+/* ── ROADMAP ──────────────────────────────────────────────────────── */
+.roadmap{display:flex;flex-direction:column;gap:3px}
+.rm-item{
+  display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:0;
+  background:var(--white);border:1px solid var(--border);border-radius:8px;
+  overflow:hidden;transition:border-color .15s;cursor:pointer;
+}
+.rm-item:hover{border-color:var(--blue-mid)}
+.rm-num{
+  font-family:var(--mono);font-size:12px;font-weight:500;
+  color:var(--muted);padding:12px;background:var(--bg);
+  border-right:1px solid var(--border);text-align:center;
+}
+.rm-body{padding:10px 14px}
+.rm-name{font-size:13px;font-weight:700;color:var(--text)}
+.rm-desc{font-size:12px;color:var(--muted)}
+.rm-time{
+  font-family:var(--mono);font-size:11px;color:var(--muted);
+  padding:0 14px;border-left:1px solid var(--border);white-space:nowrap;
+}
+.rm-dot{
+  width:8px;height:8px;border-radius:50%;margin-left:10px;flex-shrink:0;
+}
+
+/* ── TOOL GRID ────────────────────────────────────────────────────── */
+.tool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.tool-card{
+  background:var(--white);border:2px solid var(--border);border-radius:var(--r);
+  padding:14px 16px;text-align:center;text-decoration:none;color:inherit;
+  transition:all .15s;display:block;
+}
+.tool-card:hover{border-color:var(--blue-mid);box-shadow:0 0 0 3px var(--blue-light)}
+.tool-icon{font-size:22px;margin-bottom:6px}
+.tool-name{font-size:13px;font-weight:700;color:var(--text)}
+.tool-url{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px}
+
+/* ── THE BRIEF ────────────────────────────────────────────────────── */
+.brief-grid{display:flex;flex-direction:column;gap:6px;margin:14px 0}
+.brief-row{
+  display:flex;align-items:stretch;border-radius:8px;overflow:hidden;
+  border:1px solid var(--border);background:var(--white);
+}
+.br-num{
+  font-size:13px;font-weight:800;padding:12px 16px;
+  display:flex;align-items:center;justify-content:center;
+  min-width:48px;color:#fff;flex-shrink:0;
+}
+.br-1 .br-num{background:#1565C0}
+.br-2 .br-num{background:#00838F}
+.br-3 .br-num{background:#2E7D32}
+.br-4 .br-num{background:#6A1B9A}
+.br-body{padding:11px 15px;flex:1}
+.br-label{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
+.br-desc{font-size:12px;color:var(--muted)}
+.br-eg{font-family:var(--mono);font-size:10.5px;color:#1A56C4;margin-top:5px;line-height:1.5}
+.iterate-pill{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--yellow-lt);border:1.5px solid var(--yellow);
+  border-radius:20px;padding:7px 14px;font-size:12.5px;
+  font-weight:600;color:#92660A;margin-top:4px;
+}
+
+/* ── SIMULATION ───────────────────────────────────────────────────── */
+.sim-meta{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;
+}
+.sim-tag{
+  font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  padding:4px 10px;border-radius:20px;
+}
+.tag-orange{background:var(--orange-lt);color:var(--orange)}
+.tag-blue{background:var(--blue-light);color:var(--blue)}
+.timer-trigger{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--blue);color:#fff;border:none;cursor:pointer;
+  border-radius:7px;padding:7px 14px;font-size:13px;font-weight:600;
+  font-family:var(--sans);transition:background .15s;
+}
+.timer-trigger:hover{background:var(--blue-mid)}
+.timer-trigger svg{width:13px;height:13px;fill:currentColor}
+
+/* deliverable chips */
+.d-chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px}
+.d-chip{
+  background:var(--bg);border:1px solid var(--border2);border-radius:6px;
+  padding:5px 11px;font-size:12px;font-weight:600;color:var(--text2);
+  display:flex;align-items:center;gap:5px;
+}
+
+/* raw notes */
+.notes-wrap{
+  border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:0 0 18px;
+}
+.notes-bar{
+  background:var(--bg);border-bottom:1px solid var(--border);
+  padding:7px 14px;display:flex;align-items:center;justify-content:space-between;
+}
+.notes-filename{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.notes-badge{
+  font-size:10px;font-weight:600;background:#FEE2E2;color:#DC2626;
+  padding:1px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.08em;
+}
+.notes-text{
+  padding:14px 16px;font-family:var(--mono);font-size:11.5px;
+  color:var(--text2);line-height:1.75;max-height:220px;overflow-y:auto;
+  background:var(--white);
+}
+.notes-text .nm{color:#1A56C4;font-weight:500}
+.notes-text .flag{color:var(--red);font-weight:500}
+
+/* steps */
+.steps{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.step{border:1px solid var(--border);border-radius:var(--r);background:var(--white);overflow:hidden}
+.step-header{
+  display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;
+  transition:background .12s;
+}
+.step-header:hover{background:var(--bg)}
+.step-num{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  padding:3px 8px;border-radius:5px;color:#fff;flex-shrink:0;font-size:11px;
+}
+.step-title{font-size:14px;font-weight:700;color:var(--text);flex:1}
+.step-mins{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.step-chevron{font-size:11px;color:var(--dim);transition:transform .2s}
+.step-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.step-body.open{max-height:900px}
+.step-inner{padding:0 16px 16px}
+.step-desc{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.55}
+
+/* prompt block */
+.prompt-wrap{
+  border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:8px;
+}
+.prompt-bar{
+  background:var(--bg);padding:7px 12px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.prompt-label{font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.copy-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--blue);color:#fff;border:none;cursor:pointer;
+  border-radius:5px;padding:4px 10px;font-size:11px;font-weight:600;
+  font-family:var(--sans);transition:background .15s;
+}
+.copy-btn:hover{background:var(--blue-mid)}
+.copy-btn.ok{background:var(--green)}
+.copy-btn svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.prompt-text{
+  padding:13px 14px;font-family:var(--mono);font-size:11.5px;
+  color:var(--text2);line-height:1.72;white-space:pre-wrap;background:var(--white);
+}
+
+/* try chips */
+.try-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.try-chip{
+  font-size:11.5px;color:var(--blue-mid);background:var(--blue-light);
+  border:1px solid #C7D8F7;border-radius:5px;padding:4px 9px;cursor:pointer;
+  transition:all .12s;font-family:var(--mono);
+}
+.try-chip:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* checklist */
+.checklist{list-style:none;margin:16px 0 0;display:flex;flex-direction:column;gap:5px}
+.checklist li{
+  display:flex;align-items:flex-start;gap:10px;padding:10px 14px;
+  background:var(--white);border:1px solid var(--border);border-radius:7px;
+  cursor:pointer;transition:all .15s;font-size:13.5px;
+}
+.checklist li:hover{border-color:var(--border2)}
+.checklist li.done .ck-box{background:var(--green);border-color:var(--green);color:#fff}
+.checklist li.done .ck-text{text-decoration:line-through;color:var(--muted)}
+.ck-box{
+  width:18px;height:18px;min-width:18px;border:2px solid var(--border2);
+  border-radius:4px;display:flex;align-items:center;justify-content:center;
+  font-size:10px;transition:all .15s;margin-top:1px;
+}
+.ck-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+/* rating */
+.rating{display:flex;align-items:center;gap:10px;margin-top:16px}
+.rating-q{font-size:13px;color:var(--muted);font-weight:500}
+.star-row{display:flex;gap:4px}
+.star{
+  width:30px;height:30px;border-radius:6px;border:1.5px solid var(--border2);
+  background:var(--white);font-family:var(--mono);font-size:12px;color:var(--dim);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;
+}
+.star:hover,.star.on{background:var(--yellow-lt);border-color:var(--yellow);color:#92660A;font-weight:700}
+
+/* sponsor prospects */
+.prospects{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.prospect{
+  border:1px solid var(--border);border-radius:var(--r);padding:14px;background:var(--white);
+}
+.p-status{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.p-name{font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px}
+.p-note{font-size:12px;color:var(--muted);line-height:1.5}
+.prospect.warm{border-top:3px solid var(--green)}
+.prospect.cold1{border-top:3px solid var(--orange)}
+.prospect.cold2{border-top:3px solid var(--dim)}
+
+/* budget bar */
+.budget{margin:14px 0 18px}
+.budget-header{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12.5px;font-weight:600}
+.budget-track{height:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.budget-fill{height:100%;width:40%;background:var(--green);border-radius:10px;
+  background:linear-gradient(90deg,#10B981,#059669)}
+.budget-labels{display:flex;gap:16px;margin-top:6px;font-size:11px;color:var(--muted)}
+
+/* ── WORKFLOW MAP ──────────────────────────────────────────────────── */
+.wmap{display:flex;flex-direction:column;gap:5px;margin:14px 0}
+.wmap-row{
+  display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;
+  background:var(--white);border:1px solid var(--border);border-radius:7px;padding:10px 14px;
+}
+.wm-label{font-size:13.5px;color:var(--text)}
+.wm-time{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.wm-btn{
+  font-size:11.5px;padding:4px 10px;border-radius:5px;border:1.5px solid var(--border2);
+  background:var(--white);color:var(--muted);cursor:pointer;transition:all .12s;font-family:var(--sans);font-weight:600;
+}
+.wm-btn:hover{border-color:var(--blue-mid);color:var(--blue-mid)}
+.wm-btn.sel{
+  background:var(--blue-light);border-color:var(--blue-mid);
+  color:var(--blue);
+}
+
+/* ── RESOURCES ────────────────────────────────────────────────────── */
+.resource{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--white);margin-bottom:8px}
+.res-header{
+  display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer;
+  transition:background .12s;
+}
+.res-header:hover{background:var(--bg)}
+.res-icon{font-size:16px}
+.res-title{font-size:14px;font-weight:700;color:var(--text);flex:1}
+.res-arrow{font-size:11px;color:var(--dim);transition:transform .2s;margin-left:auto}
+.res-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.res-body.open{max-height:600px}
+.res-inner{padding:0 16px 16px;background:var(--bg)}
+
+/* ── COMMIT ───────────────────────────────────────────────────────── */
+.commit-card{
+  background:var(--white);border:2px solid var(--yellow);border-radius:var(--r);
+  padding:22px;margin-bottom:16px;
+}
+.cf-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:7px;display:block}
+.cf-input{
+  width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:7px;
+  padding:10px 12px;font-size:14px;color:var(--text);font-family:var(--sans);
+  transition:border-color .15s;resize:none;
+}
+.cf-input:focus{outline:none;border-color:var(--blue-mid)}
+.cf-field{margin-bottom:16px}
+.cf-field:last-child{margin-bottom:0}
+.timeline-btns{display:flex;gap:7px;flex-wrap:wrap}
+.tl-btn{
+  padding:7px 14px;border:1.5px solid var(--border2);border-radius:7px;
+  background:var(--white);color:var(--text2);font-size:13px;font-weight:600;
+  cursor:pointer;transition:all .15s;font-family:var(--sans);
+}
+.tl-btn:hover{border-color:var(--orange);color:var(--orange)}
+.tl-btn.sel{background:var(--orange-lt);border-color:var(--orange);color:var(--orange)}
+.witness-box{
+  background:var(--yellow-lt);border:2px solid var(--yellow);border-radius:var(--r);
+  padding:14px 18px;font-size:14px;font-weight:700;color:#92660A;
+  text-align:center;margin-bottom:20px;
+}
+.principle{
+  background:var(--blue);border-radius:var(--r);padding:24px;text-align:center;color:#fff;
+}
+.pr-quote{font-size:20px;font-weight:800;line-height:1.3;margin-bottom:6px}
+.pr-quote em{color:var(--yellow);font-style:normal}
+.pr-sub{font-size:13px;color:rgba(255,255,255,.65)}
+
+/* ── CALLOUT BOXES ────────────────────────────────────────────────── */
+.callout{border-radius:8px;padding:12px 15px;margin-bottom:12px;font-size:13.5px;line-height:1.6}
+.callout.blue{background:var(--blue-light);border:1px solid #C7D8F7;color:var(--blue)}
+.callout.orange{background:var(--orange-lt);border:1px solid #FAD3B3;color:#7A3C00}
+.callout.yellow{background:var(--yellow-lt);border:1px solid #F5DF6A;color:#5C4500}
+.callout strong{font-weight:700}
+
+/* ── MOBILE ────────────────────────────────────────────────────────── */
+@media(max-width:680px){
+  .layout{flex-direction:column}
+  .sidebar{
+    width:100%;height:auto;min-width:unset;
+    flex-direction:row;align-items:center;
+    padding:0 12px;height:56px;flex-shrink:0;
+    overflow-x:auto;gap:0;
+  }
+  .sb-brand{padding:0 10px 0 0;border:none;white-space:nowrap;border-right:1px solid rgba(255,255,255,.2);margin-right:10px}
+  .sb-logo{width:26px;height:26px;font-size:9px;margin:0}
+  .sb-title,.sb-subtitle{display:none}
+  .sb-nav{display:flex;flex-direction:row;padding:0;gap:4px;overflow-x:auto;flex:1}
+  .sb-nav li{padding:6px 10px;margin:0;flex-shrink:0;border-radius:5px}
+  .sb-nav li .ni-icon{display:none}
+  .sb-section-label{display:none}
+  .sb-timer-area{border:none;padding:0 0 0 10px;border-left:1px solid rgba(255,255,255,.2);flex-shrink:0}
+  .timer-label,.timer-presets,.timer-btn{display:none}
+  .timer-display{font-size:18px}
+  .main{flex:1;overflow-y:auto}
+  .page-header{padding:20px 18px 14px}
+  .page-body{padding:18px}
+  .page-title{font-size:22px}
+  .tool-grid{grid-template-columns:1fr 1fr}
+  .prospects{grid-template-columns:1fr}
+  .wmap-row{grid-template-columns:1fr auto}
+  .brief-grid .br-eg{display:none}
+  .rating{flex-wrap:wrap}
+}
+@media(max-width:400px){
+  .timer-display{display:none}
+  .sidebar{height:48px}
+}
+
+/* ── SCROLL ────────────────────────────────────────────────────────── */
+.main::-webkit-scrollbar{width:5px}
+.main::-webkit-scrollbar-track{background:var(--bg)}
+.main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ══ SIDEBAR ══════════════════════════════════════════════════════ -->
+<nav class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">JCI</div>
+    <div class="sb-title">AI Workshop</div>
+    <div class="sb-subtitle">Tétouan · 2026</div>
+  </div>
+
+  <div class="sb-section-label">Workshop</div>
+  <ul class="sb-nav" id="sb-nav">
+    <li class="active" data-page="home">
+      <span class="ni-icon">🏠</span> Overview
+    </li>
+    <li data-page="start">
+      <span class="ni-icon">⚡</span> Quick Start
+    </li>
+    <li data-page="brief">
+      <span class="ni-icon">📋</span> The Brief
+    </li>
+
+    <div class="sb-section-label" style="padding:14px 2px 6px;font-size:10px">Lab</div>
+
+    <li data-page="sim1">
+      <span class="ni-icon">🧪</span> Simulation 1
+      <span class="ni-badge">13'</span>
+    </li>
+    <li data-page="sim2">
+      <span class="ni-icon">🧪</span> Simulation 2
+      <span class="ni-badge">13'</span>
+    </li>
+
+    <div class="sb-section-label" style="padding:14px 2px 6px;font-size:10px">Yours</div>
+
+    <li data-page="map">
+      <span class="ni-icon">🗺️</span> My Workflow
+    </li>
+    <li data-page="prompts">
+      <span class="ni-icon">📚</span> Prompts
+    </li>
+    <li data-page="commit">
+      <span class="ni-icon">🎯</span> Commit
+    </li>
+  </ul>
+
+  <div class="sb-timer-area">
+    <div class="timer-label">Lab timer</div>
+    <div class="timer-row">
+      <div class="timer-display" id="timer-display" title="Tap to start / pause">13:00</div>
+      <button class="timer-btn" id="timer-btn" onclick="timerToggle()">▶</button>
+    </div>
+    <div class="timer-presets">
+      <button class="timer-preset" onclick="timerSet(13)">13 min</button>
+      <button class="timer-preset" onclick="timerSet(4)">4 min</button>
+      <button class="timer-preset" onclick="timerSet(5)">5 min</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ MAIN ═════════════════════════════════════════════════════════ -->
+<main class="main" id="main">
+
+<!-- ── HOME ────────────────────────────────────────────────────────── -->
+<div id="page-home" class="page active">
+  <div class="page-header">
+    <div class="page-eyebrow"><span class="step-dot"></span> AI-Augmented Leadership</div>
+    <div class="page-title">AI That Works For You</div>
+    <div class="page-sub">Your participant hub for today's workshop. Save this page — all prompts and resources stay here after.</div>
+  </div>
+  <div class="page-body">
+
+    <div class="callout yellow">
+      <strong>One rule today:</strong> phones and laptops are tools, not distractions. We use them every 20 minutes.
+    </div>
+
+    <div class="section-head">
+      <h2>Today's roadmap</h2><div class="sh-line"></div>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap">2 hours</span>
+    </div>
+
+    <div class="roadmap">
+      <div class="rm-item" onclick="showPage('start')">
+        <div class="rm-num">00</div>
+        <div class="rm-body">
+          <div class="rm-name">Ignition</div>
+          <div class="rm-desc">Workflow audit — where does AI fit for you?</div>
+        </div>
+        <div class="rm-time">10'</div>
+      </div>
+      <div class="rm-item" onclick="showPage('brief')">
+        <div class="rm-num" style="color:var(--blue)">01</div>
+        <div class="rm-body">
+          <div class="rm-name" style="color:var(--blue)">The Brief</div>
+          <div class="rm-desc">The 4-block method that works on any AI tool</div>
+        </div>
+        <div class="rm-time">15'</div>
+      </div>
+      <div class="rm-item" onclick="showPage('sim1')" style="border-left:3px solid var(--orange)">
+        <div class="rm-num" style="color:var(--orange)">02</div>
+        <div class="rm-body">
+          <div class="rm-name" style="color:var(--orange)">Simulation 1 — Chaos to Clarity</div>
+          <div class="rm-desc">Messy meeting notes → action plan + follow-up</div>
+        </div>
+        <div class="rm-time">20'</div>
+      </div>
+      <div class="rm-item" onclick="showPage('sim2')" style="border-left:3px solid var(--blue-mid)">
+        <div class="rm-num" style="color:var(--blue-mid)">03</div>
+        <div class="rm-body">
+          <div class="rm-name" style="color:var(--blue-mid)">Simulation 2 — Sponsorship Sprint</div>
+          <div class="rm-desc">Strategy + tailored messages + follow-up system</div>
+        </div>
+        <div class="rm-time">20'</div>
+      </div>
+      <div class="rm-item" onclick="showPage('map')">
+        <div class="rm-num" style="color:var(--muted)">04</div>
+        <div class="rm-body">
+          <div class="rm-name">My AI Workflow Map</div>
+          <div class="rm-desc">Personal system design — which tasks do I automate?</div>
+        </div>
+        <div class="rm-time">15'</div>
+      </div>
+      <div class="rm-item" onclick="showPage('commit')">
+        <div class="rm-num" style="color:var(--muted)">05</div>
+        <div class="rm-body">
+          <div class="rm-name">Commit and Close</div>
+          <div class="rm-desc">One workflow, one situation, one date</div>
+        </div>
+        <div class="rm-time">10'</div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:28px">
+      <h2>You'll leave with</h2><div class="sh-line"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <div class="card card-pad" style="display:flex;gap:12px;align-items:flex-start">
+        <span style="font-size:20px">🧠</span>
+        <div><strong>A mental model shift</strong> — AI as an organizational collaborator, not a search engine<br><span style="font-size:12.5px;color:var(--muted)">The 4-block method works on ChatGPT, Claude, Gemini — any tool</span></div>
+      </div>
+      <div class="card card-pad" style="display:flex;gap:12px;align-items:flex-start">
+        <span style="font-size:20px">🧪</span>
+        <div><strong>Two complete workflows</strong> — post-meeting recovery + sponsorship sprint<br><span style="font-size:12.5px;color:var(--muted)">Reusable on any real project, any organization</span></div>
+      </div>
+      <div class="card card-pad" style="display:flex;gap:12px;align-items:flex-start">
+        <span style="font-size:20px">🎯</span>
+        <div><strong>A specific commitment</strong> — one workflow you start this week<br><span style="font-size:12.5px;color:var(--muted)">With a situation, a date, and a witness</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── QUICK START ─────────────────────────────────────────────────── -->
+<div id="page-start" class="page">
+  <div class="page-header">
+    <div class="page-eyebrow"><span class="step-dot"></span> Block 0 · Ignition</div>
+    <div class="page-title">Open a tool. Any tool.</div>
+    <div class="page-sub">ChatGPT, Claude, Gemini — same method, any AI. Pick one and keep it open.</div>
+  </div>
+  <div class="page-body">
+
+    <div class="tool-grid">
+      <a class="tool-card" href="https://chatgpt.com" target="_blank" rel="noopener">
+        <div class="tool-icon">🤖</div>
+        <div class="tool-name">ChatGPT</div>
+        <div class="tool-url">chatgpt.com</div>
+      </a>
+      <a class="tool-card" href="https://claude.ai" target="_blank" rel="noopener">
+        <div class="tool-icon">🧠</div>
+        <div class="tool-name">Claude</div>
+        <div class="tool-url">claude.ai</div>
+      </a>
+      <a class="tool-card" href="https://gemini.google.com" target="_blank" rel="noopener">
+        <div class="tool-icon">✨</div>
+        <div class="tool-name">Gemini</div>
+        <div class="tool-url">gemini.google.com</div>
+      </a>
+    </div>
+
+    <div class="callout blue" style="margin-top:4px">
+      No account? <strong>chatgpt.com</strong> works for a few messages without login.
+    </div>
+
+    <div class="section-head" style="margin-top:24px">
+      <h2>Your workflow audit</h2><div class="sh-line"></div>
+    </div>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:12px">Tap everything that takes you more time than it should:</p>
+
+    <div id="audit-grid" style="display:flex;flex-direction:column;gap:4px"></div>
+
+    <div id="audit-out" style="display:none;margin-top:14px">
+      <div class="callout orange">
+        <strong>Your AI targets today:</strong> <span id="audit-list"></span>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:28px">
+      <h2>Ready? Next →</h2><div class="sh-line"></div>
+    </div>
+    <button class="timer-trigger" onclick="showPage('brief')" style="font-size:14px;padding:10px 18px">
+      Go to The Brief ›
+    </button>
+
+  </div>
+</div>
+
+<!-- ── THE BRIEF ────────────────────────────────────────────────────── -->
+<div id="page-brief" class="page">
+  <div class="page-header">
+    <div class="page-eyebrow"><span class="step-dot"></span> Block 1 · The Method</div>
+    <div class="page-title">The Prompt Formula</div>
+    <div class="page-sub">4 blocks. Works on any AI tool. Briefing AI = briefing a new team member on their first day.</div>
+  </div>
+  <div class="page-body">
+
+    <div class="brief-grid">
+      <div class="brief-row br-1">
+        <div class="br-num">1</div>
+        <div class="br-body">
+          <div class="br-label">ROLE — Who should AI be?</div>
+          <div class="br-desc">Sets vocabulary, depth, perspective. Without a role = generic output.</div>
+          <div class="br-eg">"You are a senior project coordinator with experience in youth leadership organizations..."</div>
+        </div>
+      </div>
+      <div class="brief-row br-2">
+        <div class="br-num">2</div>
+        <div class="br-body">
+          <div class="br-label">CONTEXT — What's the situation?</div>
+          <div class="br-desc">Most people skip this. Without context, AI invents context — and gets it wrong.</div>
+          <div class="br-eg">"JCI Tétouan · INNOVACTION competition · June 14 · 11 teams registered, need 15..."</div>
+        </div>
+      </div>
+      <div class="brief-row br-3">
+        <div class="br-num">3</div>
+        <div class="br-body">
+          <div class="br-label">TASK — What exactly do you need?</div>
+          <div class="br-desc">Specific task = specific output. Vague task = vague output.</div>
+          <div class="br-eg">"Write a 150-word update email to the steering committee. Flag registration gap as priority."</div>
+        </div>
+      </div>
+      <div class="brief-row br-4">
+        <div class="br-num">4</div>
+        <div class="br-body">
+          <div class="br-label">FORMAT — How do you want it?</div>
+          <div class="br-desc">Length, tone, language, structure. Without format, AI chooses — usually wrong.</div>
+          <div class="br-eg">"Professional tone · English · Under 150 words · WhatsApp-friendly line breaks"</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:center;margin-top:4px">
+      <div class="iterate-pill">
+        ↺ &nbsp;ITERATE — stay in the same chat, refine with one follow-up
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:26px">
+      <h2>Pair exercise · 10 min</h2><div class="sh-line"></div>
+    </div>
+    <div class="callout blue">
+      Find a partner. Pick one real task you do regularly. Build a 4-block prompt. Run it. Iterate once.
+    </div>
+
+    <div class="prompt-wrap">
+      <div class="prompt-bar">
+        <span class="prompt-label">Your prompt template</span>
+        <button class="copy-btn" onclick="cp('brief-tpl',this)">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy
+        </button>
+      </div>
+      <div class="prompt-text" id="brief-tpl">ROLE: You are [expert role relevant to your task]...
+
+CONTEXT: [Your organization / project / situation / audience / constraints]
+
+TASK: [Exactly what you need — specific, not vague]
+
+FORMAT: [Tone · Language · Length · Structure]</div>
+    </div>
+
+    <div style="font-size:12.5px;color:var(--muted);margin-top:10px">
+      After the output: try <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--text2)">"Make it shorter"</code> or <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--text2)">"Give me 3 versions"</code> in the same chat.
+    </div>
+
+    <div class="callout orange" style="margin-top:20px">
+      <strong>The quality of your output = the quality of your brief.</strong><br>Every time AI disappoints you — look at your prompt first.
+    </div>
+
+  </div>
+</div>
+
+<!-- ── SIMULATION 1 ─────────────────────────────────────────────────── -->
+<div id="page-sim1" class="page">
+  <div class="page-header" style="border-top:4px solid var(--orange)">
+    <div class="page-eyebrow" style="color:var(--orange)"><span class="step-dot" style="background:var(--orange)"></span> Simulation 01 · Teams of 3–4</div>
+    <div class="page-title">Chaos to Clarity</div>
+    <div class="page-sub">Messy meeting notes → structured action plan + follow-up message. 3 prompts, 13 minutes.</div>
+  </div>
+  <div class="page-body">
+
+    <div class="sim-meta">
+      <span class="sim-tag tag-orange">🧪 Lab · 13 minutes</span>
+      <button class="timer-trigger" onclick="timerSet(13);timerStart()">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        Start Timer
+      </button>
+    </div>
+
+    <div class="d-chips">
+      <div class="d-chip">📋 Action plan with critical blocker</div>
+      <div class="d-chip">💬 Follow-up message ready to send</div>
+    </div>
+
+    <div class="callout blue">
+      <strong>Setup:</strong> One person on the AI. Everyone else reads the output and directs. Keep the same chat open for all 3 steps.
+    </div>
+
+    <!-- Raw notes -->
+    <div class="section-head">
+      <h2>Your raw notes</h2><div class="sh-line"></div>
+    </div>
+    <div class="notes-wrap">
+      <div class="notes-bar">
+        <span class="notes-filename">INNOVACTION_meeting_notes.txt</span>
+        <span class="notes-badge">Raw · unedited</span>
+      </div>
+      <div class="notes-text">ok so we started late, maybe 6:15. <span class="nm">Amine</span> said registration is going slower than expected — only 8 teams confirmed so far, we need 15 minimum. <span class="nm">Fatima</span> thinks we should extend the deadline but <span class="nm">Mohamed</span> disagrees, says it sends the wrong signal. No decision made on that.
+
+Sponsors — <span class="nm">Youssef</span> has been talking to 3 companies: a bank (name?), a local tech startup called NovaTech, and a supermarket chain. <span class="flag">Bank needs a formal dossier by end of month.</span> NovaTech said maybe. Supermarket hasn't replied.
+
+Judging criteria — big debate. <span class="nm">Karim</span> wants "innovation" as main criterion. <span class="nm">Sara</span> thinks "social impact" matters more. <span class="nm">Tariq</span> said look at what similar competitions do. <span class="flag">Deadline for publishing criteria is June 1st.</span>
+
+Venue — <span class="flag">original venue (university amphitheater) might not be available June 14th.</span> <span class="nm">Nadia</span> is checking. No plan B mentioned.
+
+Social media — almost no content posted yet. <span class="nm">Layla</span> is supposed to handle this but seemed overwhelmed. "Team spotlight" series suggested but nobody defined it.
+
+Next meeting — probably next Thursday? Nobody confirmed.</div>
+    </div>
+
+    <!-- Steps -->
+    <div class="steps">
+      <div class="step" id="s1-step1">
+        <div class="step-header" onclick="toggleStep('s1-step1')">
+          <span class="step-num" style="background:var(--orange)">01</span>
+          <span class="step-title">Extract & Diagnose</span>
+          <span class="step-mins">4 min</span>
+          <span class="step-chevron" id="s1-step1-ch">▾</span>
+        </div>
+        <div class="step-body open" id="s1-step1-body">
+          <div class="step-inner">
+            <div class="step-desc">Paste the raw notes into AI. Get a clear diagnosis before building anything.</div>
+            <div class="prompt-wrap">
+              <div class="prompt-bar">
+                <span class="prompt-label">Prompt 1</span>
+                <button class="copy-btn" onclick="cp('s1p1',this)">
+                  <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy
+                </button>
+              </div>
+              <div class="prompt-text" id="s1p1">You are a senior project coordinator with experience in youth organizations.
+
+I'm giving you raw, messy notes from a planning meeting. Extract what actually happened.
+
+[PASTE THE RAW NOTES HERE]
+
+Give me:
+1. DECISIONS MADE — things clearly agreed upon
+2. OPEN QUESTIONS — discussed but unresolved
+3. TASKS MENTIONED — action items, even without owners
+4. RED FLAGS — urgent or at-risk items
+5. MISSING INFORMATION — gaps in names, dates, owners
+
+Bullet points. Don't add things not in the notes.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="s1-step2">
+        <div class="step-header" onclick="toggleStep('s1-step2')">
+          <span class="step-num" style="background:#00838F">02</span>
+          <span class="step-title">Build the Action Plan</span>
+          <span class="step-mins">5 min</span>
+          <span class="step-chevron" id="s1-step2-ch">▾</span>
+        </div>
+        <div class="step-body" id="s1-step2-body">
+          <div class="step-inner">
+            <div class="step-desc">Same chat. AI already has context — don't start a new conversation.</div>
+            <div class="prompt-wrap">
+              <div class="prompt-bar">
+                <span class="prompt-label">Prompt 2 — same chat</span>
+                <button class="copy-btn" onclick="cp('s1p2',this)">
+                  <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy
+                </button>
+              </div>
+              <div class="prompt-text" id="s1p2">Based on the analysis above, build a structured action plan for INNOVACTION.
+
+Table format:
+| Task | Owner | Deadline | Priority |
+
+Then add:
+— TOP 3 PRIORITIES for the next 7 days
+— CRITICAL BLOCKER — the one thing that puts the project at risk
+— NEXT MEETING AGENDA — 3 items with time allocations
+
+Missing owners → write "TBD — assign at next meeting"
+English. Direct, action-oriented tone.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="s1-step3">
+        <div class="step-header" onclick="toggleStep('s1-step3')">
+          <span class="step-num" style="background:#6A1B9A">03</span>
+          <span class="step-title">Write the Follow-Up</span>
+          <span class="step-mins">4 min</span>
+          <span class="step-chevron" id="s1-step3-ch">▾</span>
+        </div>
+        <div class="step-body" id="s1-step3-body">
+          <div class="step-inner">
+            <div class="step-desc">Still same chat. This is your real deliverable — the message that moves the project forward.</div>
+            <div class="prompt-wrap">
+              <div class="prompt-bar">
+                <span class="prompt-label">Prompt 3 — same chat</span>
+                <button class="copy-btn" onclick="cp('s1p3',this)">
+                  <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy
+                </button>
+              </div>
+              <div class="prompt-text" id="s1p3">Using the action plan above, write a follow-up message for the full INNOVACTION team.
+
+Include:
+— Brief summary of what was accomplished (2 sentences max)
+— Key decisions made
+— Tasks with owners and deadlines
+— 1–2 things needing immediate attention
+— Next meeting date + call to confirm attendance
+
+Format: WhatsApp-friendly. Short paragraphs. Under 250 words.
+Tone: professional but warm — this is a volunteer team.</div>
+            </div>
+            <div style="margin-top:10px;font-size:12px;color:var(--muted)">
+              <strong>Iterate:</strong>
+              <div class="try-row">
+                <span class="try-chip" onclick="cpchip(this)">"Cut to 5 bullet points for WhatsApp."</span>
+                <span class="try-chip" onclick="cpchip(this)">"Make the tone more energetic."</span>
+                <span class="try-chip" onclick="cpchip(this)">"The critical blocker is the venue — rewrite priorities around that."</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Check + rate -->
+    <ul class="checklist" id="cl-s1">
+      <li onclick="toggleCk(this)"><div class="ck-box">✓</div><div><div class="ck-text">Action plan with critical blocker identified</div></div></li>
+      <li onclick="toggleCk(this)"><div class="ck-box">✓</div><div><div class="ck-text">Follow-up message — ready to send with &lt;5 min edits</div></div></li>
+    </ul>
+    <div class="rating">
+      <span class="rating-q">Would you send this tonight?</span>
+      <div class="star-row" id="sr1">
+        <div class="star" onclick="doRate(1,'sr1')">1</div>
+        <div class="star" onclick="doRate(2,'sr1')">2</div>
+        <div class="star" onclick="doRate(3,'sr1')">3</div>
+        <div class="star" onclick="doRate(4,'sr1')">4</div>
+        <div class="star" onclick="doRate(5,'sr1')">5</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── SIMULATION 2 ─────────────────────────────────────────────────── -->
+<div id="page-sim2" class="page">
+  <div class="page-header" style="border-top:4px solid var(--blue-mid)">
+    <div class="page-eyebrow" style="color:var(--blue-mid)"><span class="step-dot" style="background:var(--blue-mid)"></span> Simulation 02 · Same teams</div>
+    <div class="page-title">The Sponsorship Sprint</div>
+    <div class="page-sub">Sim 1 was reactive. This is proactive — 6 weeks out, budget half-covered. Strategy first. Write second.</div>
+  </div>
+  <div class="page-body">
+
+    <div class="sim-meta">
+      <span class="sim-tag tag-blue">🧪 Lab · 13 minutes</span>
+      <button class="timer-trigger" onclick="timerSet(13);timerStart()">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        Start Timer
+      </button>
+    </div>
+
+    <div class="d-chips">
+      <div class="d-chip">📊 Priority strategy</div>
+      <div class="d-chip">📧 2 tailored messages</div>
+      <div class="d-chip">🔁 Follow-up sequence</div>
+    </div>
+
+    <div class="callout blue">
+      <strong>Rule:</strong> Don't write a single outreach word before Step 1. Strategy first — writing second.
+    </div>
+
+    <!-- Budget -->
+    <div class="budget">
+      <div class="budget-header">
+        <span>Budget needed</span>
+        <span style="color:var(--orange)">MAD 27,000 still to close</span>
+      </div>
+      <div class="budget-track"><div class="budget-fill"></div></div>
+      <div class="budget-labels">
+        <span>■ MAD 18,000 confirmed (NovaTech)</span>
+        <span>□ MAD 27,000 needed</span>
+        <span>Total: MAD 45,000</span>
+      </div>
+    </div>
+
+    <!-- Prospects -->
+    <div class="prospects">
+      <div class="prospect warm">
+        <div class="p-status" style="color:var(--green)">🟢 Warm · 3 weeks stalled</div>
+        <div class="p-name">Banque Populaire</div>
+        <div class="p-note">CSR manager asked for a dossier. Never received one. Still interested.</div>
+      </div>
+      <div class="prospect cold1">
+        <div class="p-status" style="color:var(--orange)">🟡 Cold · 3 months silent</div>
+        <div class="p-name">Groupe Elco</div>
+        <div class="p-note">"Send us something" at a JCI event. We never followed up. No contact name.</div>
+      </div>
+      <div class="prospect cold2">
+        <div class="p-status" style="color:var(--dim)">⚪ Cold outreach</div>
+        <div class="p-name">Al Omrane</div>
+        <div class="p-note">Real estate developer. Sponsors similar events. No existing relationship.</div>
+      </div>
+    </div>
+
+    <!-- Steps -->
+    <div class="steps">
+      <div class="step" id="s2-step1">
+        <div class="step-header" onclick="toggleStep('s2-step1')">
+          <span class="step-num" style="background:#1565C0">01</span>
+          <span class="step-title">Prioritize & Strategize</span>
+          <span class="step-mins">4 min</span>
+          <span class="step-chevron" id="s2-step1-ch">▾</span>
+        </div>
+        <div class="step-body open" id="s2-step1-body">
+          <div class="step-inner">
+            <div class="step-desc">Feed the full situation. Get priority order, angles per sponsor, and the one quick win. Read it with your team — do you agree?</div>
+            <div class="prompt-wrap">
+              <div class="prompt-bar">
+                <span class="prompt-label">Prompt 1 — strategy first</span>
+                <button class="copy-btn" onclick="cp('s2p1',this)">
+                  <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy
+                </button>
+              </div>
+              <div class="prompt-text" id="s2p1">You are a partnership consultant with 10 years helping youth organizations close sponsorships in Morocco.
+
+SITUATION:
+— Organization: JCI Tétouan, 45 members
+— Event: INNOVACTION, June 14, Tétouan — 200+ attendees, 15 teams, regional press
+— Budget: MAD 45,000 total · MAD 18,000 confirmed · MAD 27,000 still needed · 6 weeks left
+
+PROSPECTS:
+1. Banque Populaire — warm, asked for dossier 3 weeks ago, haven't sent it yet
+2. Groupe Elco (manufacturing) — met at JCI event 3 months ago, said "send something", we never did
+3. Al Omrane (real estate) — cold, no prior relationship, sponsors similar events in Casablanca
+
+Give me:
+1. PRIORITY ORDER — who to contact first, second, third (2-sentence rationale each)
+2. STRATEGIC ANGLE — for each, why would they sponsor INNOVACTION? (from their perspective)
+3. QUICK WIN — the single action that most improves our chances today
+
+Be direct. 6 weeks. We need decisions, not reassurance.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="s2-step2">
+        <div class="step-header" onclick="toggleStep('s2-step2')">
+          <span class="step-num" style="background:#00838F">02</span>
+          <span class="step-title">Craft Two Messages</span>
+          <span class="step-mins">6 min</span>
+          <span class="step-chevron" id="s2-step2-ch">▾</span>
+        </div>
+        <div class="step-body" id="s2-step2-body">
+          <div class="step-inner">
+            <div class="step-desc">Same chat. Two different messages — read them aloud. If they sound the same, that's the problem to fix.</div>
+            <div class="prompt-wrap">
+              <div class="prompt-bar">
+                <span class="prompt-label">Prompt 2 — same chat, two messages</span>
+                <button class="copy-btn" onclick="cp('s2p2',this)">
+                  <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy
+                </button>
+              </div>
+              <div class="prompt-text" id="s2p2">Write two outreach messages for INNOVACTION (JCI competition, June 14 Tétouan, 200+ attendees, regional press).
+
+MESSAGE 1 — Bank re-engagement:
+Recipient: CSR manager, Banque Populaire
+Situation: They asked for a dossier 3 weeks ago. We haven't sent it. Re-engage without over-apologizing.
+Their interest: visibility with young professionals — key banking demographic.
+Format: Formal email. English. Under 200 words. Specific next step with a date.
+
+MESSAGE 2 — Elco reactivation:
+Recipient: Groupe Elco (unknown contact)
+Situation: Met 3 months ago, they said "send something", we never did.
+Their interest: employer brand, community presence, regional visibility.
+Format: WhatsApp. Human, low-pressure. Under 100 words. Easy ask — not "please sponsor us."
+
+Make them feel genuinely different in tone and approach.</div>
+            </div>
+            <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div style="background:var(--green-lt);border:1px solid #A7F3D0;border-radius:7px;padding:10px;font-size:12px">
+                <strong style="color:var(--green)">Bank:</strong><br>
+                <span style="color:var(--muted)">Formal · Forward-moving · Specific date · No grovelling</span>
+              </div>
+              <div style="background:var(--orange-lt);border:1px solid #FAD3B3;border-radius:7px;padding:10px;font-size:12px">
+                <strong style="color:var(--orange)">Elco:</strong><br>
+                <span style="color:var(--muted)">Human · Warm · Low-pressure · Easy to reply to</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" id="s2-step3">
+        <div class="step-header" onclick="toggleStep('s2-step3')">
+          <span class="step-num" style="background:#2E7D32">03</span>
+          <span class="step-title">Build the Follow-Up Sequence</span>
+          <span class="step-mins">3 min</span>
+          <span class="step-chevron" id="s2-step3-ch">▾</span>
+        </div>
+        <div class="step-body" id="s2-step3-body">
+          <div class="step-inner">
+            <div class="step-desc">Sponsorships close on the 3rd touchpoint, not the 1st. Build the system for the bank — your highest-priority prospect.</div>
+            <div class="prompt-wrap">
+              <div class="prompt-bar">
+                <span class="prompt-label">Prompt 3 — same chat</span>
+                <button class="copy-btn" onclick="cp('s2p3',this)">
+                  <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy
+                </button>
+              </div>
+              <div class="prompt-text" id="s2p3">Design a 3-touch follow-up sequence for Banque Populaire — our highest-priority prospect.
+
+Context:
+— Sending the dossier today
+— Event: June 14 (6 weeks away)
+— Decision needed by June 1 (printing/signage deadline)
+— Channels: email (primary) + WhatsApp (secondary)
+
+For each touch:
+— Timing
+— Channel
+— Opening line or subject
+— Core message (2 sentences)
+— Specific ask
+
+Also: what if they go silent after Touch 3? One concrete recommendation.
+
+Keep it calendar-ready.</div>
+            </div>
+            <div style="margin-top:10px;font-size:12px;color:var(--muted)">
+              <strong>Bonus:</strong>
+              <div class="try-row">
+                <span class="try-chip" onclick="cpchip(this)">"Write the Al Omrane cold outreach — make it stand out."</span>
+                <span class="try-chip" onclick="cpchip(this)">"Write a 60-second phone script for the bank follow-up."</span>
+                <span class="try-chip" onclick="cpchip(this)">"Turn the sequence into a Notion checklist."</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="checklist">
+      <li onclick="toggleCk(this)"><div class="ck-box">✓</div><div><div class="ck-text">Priority ranking with sponsor angles from their perspective</div></div></li>
+      <li onclick="toggleCk(this)"><div class="ck-box">✓</div><div><div class="ck-text">Bank email + Elco message — both genuinely different in tone</div></div></li>
+      <li onclick="toggleCk(this)"><div class="ck-box">✓</div><div><div class="ck-text">3-touch sequence — specific enough to put in a calendar</div></div></li>
+    </ul>
+    <div class="rating">
+      <span class="rating-q">Would you send the bank email today?</span>
+      <div class="star-row" id="sr2">
+        <div class="star" onclick="doRate(1,'sr2')">1</div>
+        <div class="star" onclick="doRate(2,'sr2')">2</div>
+        <div class="star" onclick="doRate(3,'sr2')">3</div>
+        <div class="star" onclick="doRate(4,'sr2')">4</div>
+        <div class="star" onclick="doRate(5,'sr2')">5</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── WORKFLOW MAP ──────────────────────────────────────────────────── -->
+<div id="page-map" class="page">
+  <div class="page-header">
+    <div class="page-eyebrow"><span class="step-dot"></span> Block 4 · System Design</div>
+    <div class="page-title">My AI Workflow Map</div>
+    <div class="page-sub">Mark the tasks where AI can replace your first draft. Pick your top 2 — those go in your commitment.</div>
+  </div>
+  <div class="page-body">
+
+    <div class="callout blue">
+      8 minutes · Individual. Tap the tasks you'll start using AI for this week.
+    </div>
+
+    <div class="wmap" id="wmap-grid"></div>
+
+    <div id="wmap-out" style="display:none;margin-top:16px">
+      <div class="callout orange">
+        <strong>Your top AI targets:</strong> <span id="wmap-list"></span>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:24px">
+      <h2>Save your map</h2><div class="sh-line"></div>
+    </div>
+    <div class="prompt-wrap">
+      <div class="prompt-bar">
+        <span class="prompt-label">Copy to your notes</span>
+        <button class="copy-btn" onclick="cpMap(this)">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy map
+        </button>
+      </div>
+      <div class="prompt-text" id="map-export" style="font-size:12px">My AI Workflow Map — [Date]
+
+Workflows I'm implementing:
+(select tasks above to populate)
+
+Top 2 this week:
+1. _______________
+2. _______________</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── PROMPTS ───────────────────────────────────────────────────────── -->
+<div id="page-prompts" class="page">
+  <div class="page-header">
+    <div class="page-eyebrow"><span class="step-dot"></span> Resources</div>
+    <div class="page-title">Your Prompt Library</div>
+    <div class="page-sub">7 ready-to-use templates. Copy, customize the [blanks], save the ones you use.</div>
+  </div>
+  <div class="page-body">
+
+    <div class="callout yellow">
+      Save the prompts you actually use → Notes app → "My AI Toolkit — [your name]"
+    </div>
+
+    <div id="res-list" style="margin-top:14px"></div>
+
+  </div>
+</div>
+
+<!-- ── COMMIT ────────────────────────────────────────────────────────── -->
+<div id="page-commit" class="page">
+  <div class="page-header">
+    <div class="page-eyebrow"><span class="step-dot"></span> Block 5 · Commit and Close</div>
+    <div class="page-title">What you do this week.</div>
+    <div class="page-sub">Not "I'll use AI more." A specific workflow, a specific situation, a specific date.</div>
+  </div>
+  <div class="page-body">
+
+    <div class="commit-card">
+      <div class="cf-field">
+        <label class="cf-label">The workflow I'm implementing this week</label>
+        <textarea class="cf-input" rows="2" placeholder="e.g. After every JCI meeting, I'll run the 3-step extraction workflow..."></textarea>
+      </div>
+      <div class="cf-field">
+        <label class="cf-label">The specific situation I'll use it on</label>
+        <textarea class="cf-input" rows="2" placeholder="e.g. Our next INNOVACTION planning meeting on Thursday..."></textarea>
+      </div>
+      <div class="cf-field">
+        <label class="cf-label">Date</label>
+        <input type="date" class="cf-input">
+      </div>
+      <div class="cf-field">
+        <label class="cf-label">My first test will be within</label>
+        <div class="timeline-btns" id="tl-btns">
+          <button class="tl-btn" onclick="selectTl(this)">Tonight</button>
+          <button class="tl-btn" onclick="selectTl(this)">Tomorrow</button>
+          <button class="tl-btn" onclick="selectTl(this)">This week (max)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="witness-box">
+      👥 &nbsp; Turn to the person next to you · Read your commitment out loud · They witness it
+    </div>
+
+    <div class="principle">
+      <div class="pr-quote">"The quality of your output<br>= the quality of <em>your brief.</em>"</div>
+      <div class="pr-sub">Role · Context · Task · Format<br>The tools will change. This method doesn't.</div>
+    </div>
+
+    <div style="margin-top:20px;text-align:center;font-size:12.5px;color:var(--muted)">
+      JCI Tétouan · May 2026 · Save this page — all prompts stay here after the workshop.
+    </div>
+
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ── PAGE NAV ─────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#sb-nav li').forEach(l => l.classList.remove('active'));
+  const page = document.getElementById('page-'+id);
+  if (page) { page.classList.add('active'); document.getElementById('main').scrollTo(0,0); }
+  const li = document.querySelector(`[data-page="${id}"]`);
+  if (li) li.classList.add('active');
+}
+document.querySelectorAll('#sb-nav li[data-page]').forEach(li => {
+  li.addEventListener('click', () => showPage(li.dataset.page));
+});
+
+// ── STEP TOGGLE ───────────────────────────────────────────────────────
+function toggleStep(id) {
+  const body = document.getElementById(id+'-body');
+  const ch   = document.getElementById(id+'-ch');
+  const open = body.classList.toggle('open');
+  if (ch) ch.textContent = open ? '▴' : '▾';
+}
+
+// ── COPY ──────────────────────────────────────────────────────────────
+function cp(id, btn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    btn.classList.add('ok');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Copied';
+    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('ok'); }, 2000);
+  }).catch(() => {
+    const r = document.createRange(); r.selectNodeContents(el);
+    window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
+  });
+}
+function cpchip(el) {
+  const text = el.textContent.replace(/^[""]|[""]$/g,'').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = el.textContent; el.textContent = '✓ Copied';
+    el.style.background = 'var(--blue)'; el.style.color = '#fff';
+    setTimeout(() => { el.textContent = orig; el.style.background=''; el.style.color=''; }, 1500);
+  });
+}
+
+// ── CHECKLIST ─────────────────────────────────────────────────────────
+function toggleCk(el) { el.classList.toggle('done'); }
+
+// ── RATING ────────────────────────────────────────────────────────────
+function doRate(n, id) {
+  document.querySelectorAll('#'+id+' .star').forEach((s,i) => s.classList.toggle('on', i<n));
+}
+
+// ── TIMER ─────────────────────────────────────────────────────────────
+let tTotal = 13*60, tRem = 13*60, tRunning = false, tInterval = null;
+const tEl  = document.getElementById('timer-display');
+const tBtn = document.getElementById('timer-btn');
+
+function tFmt(s) { return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+function tUpdate() {
+  tEl.textContent = tRem > 0 ? tFmt(tRem) : 'DONE';
+  tEl.classList.toggle('urgent', tRem <= 60 && tRem > 0);
+}
+function timerSet(min) {
+  clearInterval(tInterval); tRunning = false;
+  tTotal = min*60; tRem = tTotal;
+  tEl.classList.remove('urgent');
+  tBtn.textContent = '▶'; tBtn.classList.remove('running');
+  tUpdate();
+}
+function timerStart() {
+  if (tRunning) return;
+  tRunning = true; tBtn.textContent = '⏸'; tBtn.classList.add('running');
+  tInterval = setInterval(() => {
+    if (tRem > 0) { tRem--; tUpdate(); }
+    else { clearInterval(tInterval); tRunning = false; tBtn.textContent = '↺'; tBtn.classList.remove('running'); }
+  }, 1000);
+}
+function timerToggle() {
+  if (tEl.textContent === 'DONE') { timerSet(Math.round(tTotal/60)); return; }
+  if (tRunning) {
+    clearInterval(tInterval); tRunning = false;
+    tBtn.textContent = '▶'; tBtn.classList.remove('running');
+  } else { timerStart(); }
+}
+tEl.addEventListener('click', timerToggle);
+
+// ── AUDIT GRID ────────────────────────────────────────────────────────
+const AUDIT = [
+  'Writing meeting agendas / minutes',
+  'Drafting professional emails',
+  'Sponsorship outreach & follow-ups',
+  'Social media content',
+  'Project action plans',
+  'Project briefs & technical sheets',
+  'Research & information synthesis',
+  'Event communication & announcements',
+];
+const auditSel = new Set();
+const ag = document.getElementById('audit-grid');
+AUDIT.forEach(t => {
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:#fff;border:1.5px solid var(--border);border-radius:7px;padding:9px 13px;cursor:pointer;transition:all .12s;font-size:13.5px';
+  row.innerHTML = `<span>${t}</span><span style="font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--border2);border-radius:4px;padding:2px 7px;transition:all .15s" data-btn>mark</span>`;
+  row.addEventListener('click', () => {
+    const btn = row.querySelector('[data-btn]');
+    if (auditSel.has(t)) {
+      auditSel.delete(t); btn.textContent='mark'; btn.style.cssText='font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--border2);border-radius:4px;padding:2px 7px;transition:all .15s';
+      row.style.borderColor='var(--border)';
+    } else {
+      auditSel.add(t); btn.textContent='✓'; btn.style.cssText='font-family:var(--mono);font-size:10px;color:var(--blue);border:1px solid var(--blue-mid);border-radius:4px;padding:2px 7px;background:var(--blue-light);transition:all .15s';
+      row.style.borderColor='var(--blue-mid)';
+    }
+    const out = document.getElementById('audit-out');
+    const list = document.getElementById('audit-list');
+    out.style.display = auditSel.size ? 'block' : 'none';
+    list.textContent = [...auditSel].join(' · ');
+  });
+  ag.appendChild(row);
+});
+
+// ── WORKFLOW MAP ──────────────────────────────────────────────────────
+const WMAP = [
+  {l:'Meeting agendas',            t:'~15 min'},
+  {l:'Meeting minutes / PV',        t:'~30 min'},
+  {l:'Professional emails',         t:'~10 min'},
+  {l:'Sponsorship outreach',         t:'~45 min'},
+  {l:'Social media posts',           t:'~20 min'},
+  {l:'Action plans from notes',      t:'~25 min'},
+  {l:'Event communication',          t:'~20 min'},
+  {l:'Brainstorming & ideation',     t:'~30 min'},
+];
+const wmapSel = new Set();
+const wg = document.getElementById('wmap-grid');
+WMAP.forEach(({l,t}) => {
+  const row = document.createElement('div');
+  row.className = 'wmap-row';
+  row.innerHTML = `<span class="wm-label">${l}</span><span class="wm-time">${t}/task</span><button class="wm-btn" onclick="wmTgl('${l}',this)">+ Select</button>`;
+  wg.appendChild(row);
+});
+function wmTgl(l, btn) {
+  if (wmapSel.has(l)) { wmapSel.delete(l); btn.textContent='+ Select'; btn.classList.remove('sel'); btn.closest('.wmap-row').style.borderColor=''; }
+  else { wmapSel.add(l); btn.textContent='✓ Selected'; btn.classList.add('sel'); btn.closest('.wmap-row').style.borderColor='var(--blue-mid)'; }
+  const out = document.getElementById('wmap-out');
+  document.getElementById('wmap-list').textContent = [...wmapSel].join(' · ');
+  out.style.display = wmapSel.size ? 'block' : 'none';
+  updateMapExport();
+}
+function updateMapExport() {
+  const today = new Date().toLocaleDateString('en-GB');
+  const items = [...wmapSel].map((l,i) => `  ${i+1}. ${l}`).join('\n') || '  (none selected yet)';
+  document.getElementById('map-export').textContent =
+    `My AI Workflow Map — ${today}\n\nWorkflows I'm implementing:\n${items}\n\nTop 2 this week:\n1. _______________\n2. _______________`;
+}
+function cpMap(btn) {
+  const text = document.getElementById('map-export').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML; btn.innerHTML = '✓ Copied'; btn.classList.add('ok');
+    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('ok'); }, 2000);
+  });
+}
+updateMapExport();
+
+// ── RESOURCES ─────────────────────────────────────────────────────────
+const RESOURCES = [
+  {icon:'📋',title:'Meeting Agenda',prompt:`You are an experienced meeting facilitator with expertise in youth leadership organizations.
+
+We are [JCI Tétouan / your chapter]. Meeting: [X] minutes on [topic].
+Team: [X] members. Key agenda points: [list 3-4 topics].
+
+Draft a structured meeting agenda.
+
+Format: numbered list with time allocations · English
+Include 5-min opening check-in and 5-min wrap-up with action items.`},
+  {icon:'📝',title:'Meeting Minutes / PV',prompt:`You are a professional secretary and project coordinator.
+
+Turn these rough notes into clean meeting minutes.
+
+Meeting: [name] · Date: [date] · Attendees: [list/number]
+
+Raw notes:
+[paste your notes here — messy is fine]
+
+Format: formal · English
+Sections: Present / Key Decisions / Action Items (owner + deadline) / Next Meeting`},
+  {icon:'📧',title:'Professional Email',prompt:`You are a senior communications officer for a youth professional organization.
+
+I need to [write to a sponsor / follow up / invite a speaker] about [topic].
+My org: JCI Tétouan — youth leadership network, [X] active members.
+Recipient: [brief description].
+
+Draft a professional email.
+
+Format: formal but warm · English · 3 paragraphs max · Under 200 words
+Clear subject line + specific call to action with a deadline.`},
+  {icon:'💰',title:'Sponsorship Outreach',prompt:`You are an expert in partnership development for youth organizations.
+
+We are JCI Tétouan, organizing INNOVACTION — a regional entrepreneurship competition,
+[month/year] in Tétouan · [X] participants + guests · Regional press.
+We're reaching out to [type of business] for sponsorship.
+
+Draft a sponsorship outreach message to [email / LinkedIn].
+
+Format: professional, enthusiastic · English · Under 200 words
+Mention visibility benefits · End with a specific next step.`},
+  {icon:'📱',title:'Social Media Post',prompt:`You are a social media strategist for youth organizations.
+
+Organization: JCI Tétouan — young professionals 18-40, leadership & entrepreneurship.
+Platform: [LinkedIn / Instagram / Facebook / WhatsApp Status]
+Goal: [promote INNOVACTION / announce a project / celebrate an achievement]
+
+Write [1 post / 3-post series] for this goal.
+
+Format: [energetic / inspiring / professional] tone · English
+[Under 150 words / include 3 hashtags]`},
+  {icon:'🗂️',title:'Action Plan from Notes',prompt:`You are a project management expert for youth and nonprofit organizations.
+
+Transform these rough notes into a structured action plan.
+
+Project: [INNOVACTION / chapter project]
+Team: [X people] · Timeline: [deadline]
+
+Raw notes:
+[paste here]
+
+Format: table with Task / Owner / Deadline columns
+Add: 3 key objectives · North star priority for next 2 weeks · English`},
+  {icon:'💡',title:'Brainstorming Session',prompt:`You are a creative strategist with experience in youth entrepreneurship programs.
+
+I need to brainstorm [solutions / ideas / approaches] for:
+[describe your challenge]
+
+Context: [JCI / INNOVACTION / your situation]
+Constraints: [budget / time / team size]
+
+Give me 6 unconventional ideas — not the obvious ones.
+For each: 2 sentences on the concept and why it works in this context.
+Then: identify the 2 highest impact / lowest effort ideas.`},
+];
+const rl = document.getElementById('res-list');
+RESOURCES.forEach((r,i) => {
+  const div = document.createElement('div');
+  div.className = 'resource';
+  div.innerHTML = `
+    <div class="res-header" onclick="toggleRes('rb${i}','ra${i}')">
+      <span class="res-icon">${r.icon}</span>
+      <span class="res-title">${r.title}</span>
+      <span class="res-arrow" id="ra${i}">▾</span>
+    </div>
+    <div class="res-body" id="rb${i}">
+      <div class="res-inner">
+        <div class="prompt-wrap">
+          <div class="prompt-bar">
+            <span class="prompt-label">Starter prompt — customize the [blanks]</span>
+            <button class="copy-btn" onclick="cp('rp${i}',this)">
+              <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy
+            </button>
+          </div>
+          <div class="prompt-text" id="rp${i}">${r.prompt}</div>
+        </div>
+      </div>
+    </div>`;
+  rl.appendChild(div);
+});
+function toggleRes(bodyId, arrowId) {
+  const b = document.getElementById(bodyId); const a = document.getElementById(arrowId);
+  b.classList.toggle('open'); a.textContent = b.classList.contains('open') ? '▴' : '▾';
+}
+
+// ── COMMIT TIMELINE ───────────────────────────────────────────────────
+function selectTl(btn) {
+  document.querySelectorAll('#tl-btns .tl-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+</script>
+</body>
+</html>
